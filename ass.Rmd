@@ -1,0 +1,120 @@
+---
+title: "Simulating Exponentials"
+author: "Jade Forlani-Brennan"
+date: "10/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Overview
+This project report is in 2 sections:
+
+1. Exponential Distrubtion Sampling Simulations
+2. Analysing Tooth Growth Data
+
+In the first section of this report I simulate an exponential distrubtion with
+parameter lambda of 0.2. And repeat this simulation 40 times, taking the mean
+and variance of each of the 40 simulations. The theoretical and sample mean is
+compared. And the same for the theoretical and sample variance. Lastly the 
+normal distrubtion shape of the samples is shown.
+
+In the second section Tooth Growth Data is explored and summarised. Finally, 
+tooth growth by supp and dose is compared with confidence intervals.
+
+# Exponential Distrubtion Sampling Simulations
+
+```{r expConstants}
+lambda = 0.2 # number
+n = 1000 #  size of each distribution, number of data points
+B = 40 # number of simulations
+```
+
+## Simulation
+
+First, creating the histogram of a single simulation consisting of **`r n`**
+data points.
+```{r expSimulation}
+hist(rexp(n,rate = lambda))
+```
+
+We see the tell tale shape of an expoentially decaying distrubtion.
+Most of the values generated are closer to 0, with less and less larger numbers.
+
+Next, repeating this simulation **`r B`** times and looking at the mean for each
+simulation and storing ths result in the means variable.
+
+```{r expMeans}
+means = NULL
+for (i in 1:n) means = c(means, mean(rexp(B,rate=lambda)))
+```
+
+This is then repeated again **`r B`** times this time looking at the variance
+of each simulation, storing this result in the vars variable.
+
+```{r expVars}
+vars = NULL
+for (i in 1:n) vars = c(vars, var(rexp(B,rate=lambda)))
+```
+
+
+## Sample Mean vs. Theoretical Mean
+
+```{r expMean}
+meanTheory = 1/lambda # theoretical mean
+meanSample = means[1] # sample mean
+meanAvg = mean(means) # average of sample means
+```
+The theoretical mean is **`r meanTheory`** vs the sample mean of **`r meanSample`**.
+Which is very close with a single sample of **`r n`** data points but not exact.
+However, if we average all the samples out the average simulated mean is 
+**`r meanAvg`** which is very close to the theoretical number. However, still
+slightly difference because of simulation or *"Monte Carlo"* error.
+
+## Sample Variance vs. Theoretical Variance
+
+```{r expVar}
+sdTheory = 1/lambda # theoretical stmeanTheoryandard deviation
+varTheory = sdTheory^2 # theoretical variance
+varSample = vars[1] # sample variance
+varAvg = mean(vars) # average of sample variances
+```
+The theoretical variance is the sample standard deviation squared equal to **`r varTheory`**.
+Compare this with the sample variance of **`r varSample`**.
+Which is close but not the sample despite a single sample of **`r n`** data points.
+However, if we average all the samples out the average simulated variane is 
+**`r varAvg`** which is very close to the theoretical number. However, still
+slightly difference because of simulation or *"Monte Carlo"* error.
+
+## Sample Means Normally Distrubted
+
+Looking at a histogram of the mean of each of the **`r B`** simulations we see 
+what looks much closer to a normal distrubtion shape.
+
+```{r expNormalMeans}
+hist(means,
+     breaks = 20,
+     main = paste("Histogram of", B, "exponential distrubtion simulations with",n,"data points"),
+     xlab = "Simulation Mean")
+```
+
+
+
+We can tell thi from the tell tale bell curve shape centered at approximatly
+the theoretical mean of **`r meanTheory`** which thins out at the tails.
+
+# Analysing Tooth Growth Data
+
+## Exploratory Data Analysis
+
+## Summary
+
+## Hypothesis Testing
+
+## Assumptions & Conclusions
+
+```{r }
+
+```
