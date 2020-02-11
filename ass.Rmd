@@ -2,7 +2,9 @@
 title: "Simulating Exponentials"
 author: "Jade Forlani-Brennan"
 date: "10/02/2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -99,22 +101,127 @@ hist(means,
      main = paste("Histogram of", B, "exponential distrubtion simulations with",n,"data points"),
      xlab = "Simulation Mean")
 ```
-
-
-
 We can tell thi from the tell tale bell curve shape centered at approximatly
 the theoretical mean of **`r meanTheory`** which thins out at the tails.
 
 # Analysing Tooth Growth Data
 
 ## Exploratory Data Analysis
+We begin by loading the ToothGrowth data from the R datasets package.
+```{r tooth}
+library(datasets) # load data sets
+toothData <- ToothGrowth # load Tooth Growth Dataset
+```
 
 ## Summary
+Let's have a look at the dimensions of the dataset first.
 
-## Hypothesis Testing
+```{r dim}
+dims <- dim(toothData)
+```
 
-## Assumptions & Conclusions
+The dataset consts of `r dims[1]` observations and `r dims[2]` variables.
+Let's have a look at the variables next.
 
-```{r }
+```{r variables}
+str(toothData)
+```
+We see there is a numeric len, 2 factors for supp as either "OJ" or "VC".
+And a dose.
+
+And the first 10 rows.
+```{r first10}
+head(toothData)
+```
+
+Having a quick look at the doses which are listed as a numeric.
+```{r table2}
+table(toothData$dose)
+```
+But in fact we only see one of 3 options, 0.5, 1, or 2. And each appears 20 times.
+
+Next let's look at each group seperately on the same plot.
+
+```{r scatter}
+library(ggplot2)
+g <- ggplot(toothData, aes(dose,len))
+g + geom_point(aes(color=factor(supp))) + labs(title = "Len vs Dose by supp group")
 
 ```
+
+```{r split}
+splitTooth <- split(toothData, toothData$supp)
+OJmean <- mean(splitTooth$OJ$len)
+VCmean <- mean(splitTooth$VC$len)
+meanDiff <- OJmean-VCmean
+```
+Looking at the means of both (averaged across all doses) we see
+
+* OJ had a mean of **`r round(OJmean,2)`**
+* VC hada  mean of **`r round(VCmean,2)`**
+
+And the difference between the two is that OJ was **`r round(meanDiff,2)`** 
+larger than VC
+
+## Hypothesis Testing
+For a hypthesis test I will use the "Permutation Test" method covered in week 4 
+module 13: Resampling. 
+
+The null hypothesis then is that VC and OJ are the same. I.e. any variation in 
+length is random. The alternative hypothesis is that there is a difference.
+
+Our test statistic is the **`r round(meanDiff,2)`** we found before, the difference
+in means.
+
+We will next permuate the group labels and recalculate this test statistic each time.
+We reject the null hypothesis if we fail to find a permutation that offers us a 
+more extreme test statistic than **`r round(meanDiff,2)`**.
+
+
+```{r permute}
+B <- 10000 # number of permutations to simulate
+y <- toothData$len
+label <- as.character(toothData$supp)
+testStat <- function(df,l) mean(df[l=="OJ"]) - mean(df[l=="VC"])
+observedStat <- testStat(y,label)
+permutations <- sapply(1 : B, function(i) testStat(y,sample(label)))
+```
+
+Let's jump in and see how our permutations went, adding the observed statistic
+as a red vertical line at **`r round(meanDiff,2)`**.
+```{r permutehist}
+hist(permutations, xlab = "Test Statistic")
+abline(v=observedStat,col="red")
+```
+We can see that yes it is included within the bounds of permutations.
+So it is possible that there is not significant difference between OJ and VC
+in terms of tooth growth.
+
+More formally, we estimate the p-value as the proportion of permutations which
+were more extreme (greater than) the observerd statistic amoung all the simulations.
+```{r peen}
+pvalue <- mean(permutations > observedStat)
+
+```
+This gives a p-value of **`r pvalue`** or **'r round(pvalue*100,0)`** percent.
+Meaning at a 90% confidence interval we would reject and at a 95% confidence
+interval we would accept.
+
+Or in plain english we could say we are 90% confidence that OJ is better for
+tooth growth than VC. But we could **not say* we are 95% confident. 
+
+
+## Assumptions & Conclusions
+My conclusion is that I am 90% confdient OJ is better for tooth growth than VC.
+However, this is predicated on the following assumptions
+
+* Len is in the same units for all observations
+* Dose is in the same units for all observations
+* Len is correlated only to supp and there is not a hidden confounding variable
+* Each observation was independant of one another
+* Len can be averaged across all dosages to get a total average
+
+In particular this last assumption is one worth investigating further.
+Further investigation could look at each dosage rate seperately rather than
+aggregating and averaging them together.
+
